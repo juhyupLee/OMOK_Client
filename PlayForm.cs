@@ -24,16 +24,43 @@ namespace OMOK_Client
 
             Graphics gp = this.pictureBox1.CreateGraphics();
 
+            int radian = 10;
 
-            MessageBox.Show("X:" + e.X + " Y:" + e.Y);
+           // MessageBox.Show("X:" + e.X + " Y:" + e.Y);
 
             int cellWidth = pictureBox1.Width / LineCount;
 
-            if ((e.X % cellWidth )<15  && (e.Y % cellWidth)<15)
+            int restX = e.X % cellWidth;
+            int mokX = e.X / cellWidth;
+
+            int restY = e.Y % cellWidth;
+            int mokY = e.Y / cellWidth;
+
+            int targetX = -100;
+            int targetY = -100;
+
+            if(restX<= radian)  //ex X: 23 ---
             {
-                SolidBrush brush = new SolidBrush(Color.Black);
-                gp.FillEllipse(brush, e.X-5, e.Y-5, 10, 10);
+                targetX = e.X - restX;
             }
+            else if(restX >=cellWidth-radian)
+            {
+                targetX = e.X + (20 - restX);
+
+            }
+
+            if(restY <= radian)
+            {
+                targetY = e.Y - restY;
+            }
+            else if(restY>= cellWidth - radian)
+            {
+                targetY = e.Y + (20 - restY);
+
+            }
+                SolidBrush brush = new SolidBrush(Color.Black);
+                gp.FillEllipse(brush, targetX- (radian/2), targetY-(radian/2), radian, radian);
+            
         }
 
         private void PictureBox1_Paint(object sender, PaintEventArgs e)

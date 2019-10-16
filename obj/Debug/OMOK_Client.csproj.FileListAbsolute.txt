@@ -9,3 +9,13 @@ C:\Side Project\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.exe
 C:\Side Project\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.pdb
 C:\Side Project\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.MenuForm.resources
 C:\Side Project\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.PlayForm.resources
+D:\Project reposit\OMOK_Client\OMOK_Client\bin\Debug\OMOK_Client.exe.config
+D:\Project reposit\OMOK_Client\OMOK_Client\bin\Debug\OMOK_Client.exe
+D:\Project reposit\OMOK_Client\OMOK_Client\bin\Debug\OMOK_Client.pdb
+D:\Project reposit\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.csprojAssemblyReference.cache
+D:\Project reposit\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.MenuForm.resources
+D:\Project reposit\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.PlayForm.resources
+D:\Project reposit\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.Properties.Resources.resources
+D:\Project reposit\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.csproj.GenerateResource.cache
+D:\Project reposit\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.exe
+D:\Project reposit\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.pdb
