@@ -1,0 +1,11 @@
+C:\Side Project\OMOK_Client\OMOK_Client\bin\Debug\OMOK_Client.exe.config
+C:\Side Project\OMOK_Client\OMOK_Client\bin\Debug\OMOK_Client.exe
+C:\Side Project\OMOK_Client\OMOK_Client\bin\Debug\OMOK_Client.pdb
+C:\Side Project\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.csprojAssemblyReference.cache
+C:\Side Project\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.Properties.Resources.resources
+C:\Side Project\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.csproj.GenerateResource.cache
+C:\Side Project\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.csproj.CoreCompileInputs.cache
+C:\Side Project\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.exe
+C:\Side Project\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.pdb
+C:\Side Project\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.MenuForm.resources
+C:\Side Project\OMOK_Client\OMOK_Client\obj\Debug\OMOK_Client.PlayForm.resources
