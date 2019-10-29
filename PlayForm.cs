@@ -213,8 +213,6 @@ namespace OMOK_Client
                     {
                         for(int index3=index2;index3<rowPoint[index1].Count-1;++index3)//ㅇㅇㅇㅇㅇ5개 놓였다고했을때, 
                         {
-                            
-
                             if ((rowPoint[index1][index3+1]).GetX() - (rowPoint[index1][index3]).GetX() == cellWidth) //연속된 돌의차이가 cellwidth면 시리즈카운트를 올린다.
                             {
                                 ++seriesCount;
@@ -249,7 +247,6 @@ namespace OMOK_Client
                                             return true; // Win
                                         }
                                     }
-                                 
                                 }
                                 else
                                 {
@@ -284,9 +281,6 @@ namespace OMOK_Client
                                         }
 
                                     }
-                                  
-
-
                                 }
                                 
                                 
@@ -317,15 +311,73 @@ namespace OMOK_Client
                                 seriesCount = 0;
                                 continue;
                             }
+                            if (seriesCount == 1)
+                            {
+                                firstDoll = index3;  //첫번째 돌의 index 기억하기.
+                            }
+                            if (seriesCount == 4)
+                            {
+                                if (firstDoll == 0)
+                                {
+                                    if (index3 + 2 > colPoint[index1].Count - 1)//인덱스 범위를 초과하면 뒷돌이 없다는뜻임.
+                                    {
+                                        return true;
+                                    }
+                                    else //그렇지 않으면
+                                    {
+                                        if (colPoint[index1][index3 + 2].GetY() - colPoint[index1][index3 + 1].GetY() == cellWidth) //뒷돌이 더있어 6목이라면
+                                        {
+                                            seriesCount = 0;
+                                            firstDoll = -1;
+                                            continue;
+                                        }
+                                        else
+                                        {
+                                            return true; // Win
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (index3 + 2 > colPoint[index1].Count - 1)//인덱스 범위를 초과하면, 뒷돌이 없다는뜻임. 앞돌만 조사
+                                    {
+
+                                        //5개돌 앞돌 조사해서 아무것도 없다면 오목!!
+                                        if ((colPoint[index1][firstDoll].GetY()) - (colPoint[index1][firstDoll - 1].GetY()) != cellWidth)
+                                        {
+                                            return true;
+                                        }
+                                        else
+                                        {
+                                            seriesCount = 0;
+                                            firstDoll = -1;
+                                            continue;
+                                        }
+                                    }
+                                    else //그렇지 않다면 뒷돌이 있을 가능성이 있음.
+                                    {
+                                        //5개돌 뒷돌, 앞돌 조사해서 아무것도 없다면 오목!!
+                                        if ((colPoint[index1][index3 + 2].GetY()) - (colPoint[index1][index3 + 1].GetY()) != cellWidth
+                                           && (colPoint[index1][firstDoll].GetY()) - (colPoint[index1][firstDoll - 1].GetY()) != cellWidth)
+                                        {
+                                            return true;
+                                        }
+                                        else
+                                        {
+                                            seriesCount = 0;
+                                            firstDoll = -1;
+                                            continue;
+                                        }
+
+                                    }
+                                }
+
+
+                            }
                         }
-                        if(seriesCount==4)
-                        {
-                            return true;
-                        }
-                        else
-                        {
-                            seriesCount = 0;
-                        }
+                        seriesCount = 0;
+                        firstDoll = -1;
+
                     }
                 }
                 if(lrPoint[index1].Count>=5)
