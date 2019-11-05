@@ -175,27 +175,32 @@ namespace OMOK_Client
             {
                 for(int j=0; j<BlackReposit.Count;++j)
                 {
-                    if(BlackReposit[j].GetX() ==i)
+                    if(BlackReposit[j].GetX() ==i) // Row
                     {
                         ++colCount[lineIndex];
                         colPoint[lineIndex].Add(BlackReposit[j]);
                     }
-                    if(BlackReposit[j].GetY()==i)
+                    if(BlackReposit[j].GetY()==i) // Col
                     {
                         ++rowCount[lineIndex];
                         rowPoint[lineIndex].Add(BlackReposit[j]);
                     }
-                    if(BlackReposit[j].GetX()==i && BlackReposit[j].GetY()==i)
+
+                    //LR 대각선 조사
+                    for (int k = 0; k <= lineIndex; ++k)
                     {
-                        ++lrCount[lineIndex];
-                        lrPoint[lineIndex].Add(BlackReposit[j]);
-                    }
-                    if(BlackReposit[j].GetX()==(pictureBox1.Width-i) && BlackReposit[j].GetY()==i)
-                    {
-                        ++rlCount[lineIndex];
-                        rlPoint[lineIndex].Add(BlackReposit[j]);
+                        int tempX = lineIndex - k;
+                        int tempY = k * cellWidth;
+                        if (BlackReposit[j].GetX() == pictureBox1.Width - (cellWidth * tempX)
+                           && BlackReposit[j].GetY() == tempY)
+                        {
+                            ++lrCount[lineIndex];
+                            lrPoint[lineIndex].Add(BlackReposit[j]);
+                        }
                     }
                 }
+             
+                
             }
 
             int seriesCount = 0;
@@ -205,7 +210,7 @@ namespace OMOK_Client
             {
                 if(rowPoint[index1].Count>=5)
                 {
-                    rowPoint[index1].Sort(delegate (TargetPoint A, TargetPoint B) // 놓인순서대로 되있는 rowPoint를 소팅하기
+                    rowPoint[index1].Sort(delegate (TargetPoint A, TargetPoint B) // 놓인순서대로 되있는 rowPoint를 x값을 기준으로 소팅하기
                     {
                         return A.mX.CompareTo(B.mX);
                     });
@@ -296,7 +301,7 @@ namespace OMOK_Client
                 {
                     colPoint[index1].Sort(delegate (TargetPoint A, TargetPoint B)
                     {
-                        return A.mY.CompareTo(B.mY);
+                        return A.mY.CompareTo(B.mY); 
                     });
                     for (int index2 = 0; index2 < colPoint[index1].Count - 1; ++index2)
                     {
@@ -382,7 +387,92 @@ namespace OMOK_Client
                 }
                 if(lrPoint[index1].Count>=5)
                 {
-                    //lrIndex.Add(i);
+                    lrPoint[index1].Sort(delegate (TargetPoint A, TargetPoint B) // 놓인순서대로 되있는 lrPoint를 x값을 기준으로 소팅하기
+                    {
+                        return A.mX.CompareTo(B.mX);
+                    });
+                    for (int index2 = 0; index2 < lrPoint[index1].Count - 1; ++index2) //해당 라인에서 놓인 돌0번에서 ~ 마지막 전까지
+                    {
+                        for (int index3 = index2; index3 < lrPoint[index1].Count - 1; ++index3)//ㅇㅇㅇㅇㅇ5개 놓였다고했을때, 
+                        {
+                            if ((lrPoint[index1][index3 + 1]).GetX() - (lrPoint[index1][index3]).GetX() == cellWidth) //연속된 돌의차이가 cellwidth면 시리즈카운트를 올린다.
+                            {
+                                ++seriesCount;
+                            }
+                            else
+                            {
+                                seriesCount = 0;
+                                continue;
+                            }
+                            if (seriesCount == 1)
+                            {
+                                firstDoll = index3;  //첫번째 돌의 index 기억하기.
+                            }
+                            if (seriesCount == 4)
+                            {
+                                if (firstDoll == 0)
+                                {
+                                    if (index3 + 2 > lrPoint[index1].Count - 1)//인덱스 범위를 초과하면 뒷돌이 없다는뜻임.
+                                    {
+                                        return true;
+                                    }
+                                    else //그렇지 않으면
+                                    {
+                                        if (lrPoint[index1][index3 + 2].GetX() - lrPoint[index1][index3 + 1].GetX() == cellWidth) //뒷돌이 더있어 6목이라면
+                                        {
+                                            seriesCount = 0;
+                                            firstDoll = -1;
+                                            continue;
+                                        }
+                                        else
+                                        {
+                                            return true; // Win
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (index3 + 2 > lrPoint[index1].Count - 1)//인덱스 범위를 초과하면, 뒷돌이 없다는뜻임. 앞돌만 조사
+                                    {
+
+                                        //5개돌 앞돌 조사해서 아무것도 없다면 오목!!
+                                        if ((lrPoint[index1][firstDoll].GetX()) - (lrPoint[index1][firstDoll - 1].GetX()) != cellWidth)
+                                        {
+                                            return true;
+                                        }
+                                        else
+                                        {
+                                            seriesCount = 0;
+                                            firstDoll = -1;
+                                            continue;
+                                        }
+                                    }
+                                    else //그렇지 않다면 뒷돌이 있을 가능성이 있음.
+                                    {
+                                        //5개돌 뒷돌, 앞돌 조사해서 아무것도 없다면 오목!!
+                                        if ((lrPoint[index1][index3 + 2].GetX()) - (lrPoint[index1][index3 + 1].GetX()) != cellWidth
+                                           && (lrPoint[index1][firstDoll].GetX()) - (lrPoint[index1][firstDoll - 1].GetX()) != cellWidth)
+                                        {
+                                            return true;
+                                        }
+                                        else
+                                        {
+                                            seriesCount = 0;
+                                            firstDoll = -1;
+                                            continue;
+                                        }
+
+                                    }
+                                }
+
+
+                            }
+                        }
+                        seriesCount = 0;
+                        firstDoll = -1;
+
+
+                    }
                 }
                 if(rlPoint[index1].Count>=5)
                 {
