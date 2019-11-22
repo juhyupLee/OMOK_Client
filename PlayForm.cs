@@ -8,6 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using System.Net;
+using System.Net.Sockets;
+// 소켓과 관련덴 네임스페이스
+
+
+
 namespace OMOK_Client
 {
     public partial class PlayForm : Form
@@ -16,7 +22,6 @@ namespace OMOK_Client
 
         class TargetPoint
         {
-
             public TargetPoint(int x, int y)
             {
                 mX = x;
@@ -41,6 +46,13 @@ namespace OMOK_Client
         List<TargetPoint> WhiteReposit;
         Stack<TargetPoint> TotalReposit;
 
+        //소켓관련변수
+        Socket hClntSock;
+        IPEndPoint servAddr;
+        byte[] buf;
+
+        readonly int BUF_SIZE = 1024;
+
         readonly int LineCount = 15; // 15 X 15 의 바둑판 배열
         readonly int Radian = 10;
         bool bTurn = true;// true 백 false 흑
@@ -51,6 +63,27 @@ namespace OMOK_Client
             BlackReposit = new List<TargetPoint>();
             WhiteReposit = new List<TargetPoint>();
             TotalReposit = new Stack<TargetPoint>();
+            //TCP IP 소켓통신
+            hClntSock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            servAddr = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1234);
+
+            buf = new byte[1024];
+
+            try
+            {
+                hClntSock.Connect(servAddr);
+
+            }
+            catch
+            {
+                MessageBox.Show("Unable to conntect......");
+
+            }
+
+            hClntSock.Receive(buf, 0, BUF_SIZE, 0);
+
+            MessageBox.Show(Encoding.UTF8.GetString(buf));
+
 
         }
 

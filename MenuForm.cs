@@ -8,6 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using System.Net;
+using System.Net.Sockets;
+// 소켓과 관련덴 네임스페이스
+
 namespace OMOK_Client
 {
     public partial class MenuForm : Form

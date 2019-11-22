@@ -4,8 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+
+
 namespace OMOK_Client
 {
+    
     static class Program
     {
         /// <summary>
@@ -14,6 +17,7 @@ namespace OMOK_Client
         [STAThread]
         static void Main()
         {
+              
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MenuForm());
