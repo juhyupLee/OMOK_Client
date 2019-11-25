@@ -42,6 +42,12 @@ namespace OMOK_Client
             public int mX;
             public int mY;
         }
+
+        enum STONE
+        {
+            WHITE =1,
+            BLACK =2
+        };
         List<TargetPoint> BlackReposit;
         List<TargetPoint> WhiteReposit;
         Stack<TargetPoint> TotalReposit;
@@ -56,6 +62,7 @@ namespace OMOK_Client
         readonly int LineCount = 15; // 15 X 15 의 바둑판 배열
         readonly int Radian = 10;
         bool bTurn = true;// true 백 false 흑
+        STONE stone = 0;
 
         public PlayForm()
         {
@@ -68,11 +75,15 @@ namespace OMOK_Client
             servAddr = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1234);
 
             buf = new byte[1024];
+            timer1.Interval = 8000;
+
+            timer1.Start();
+            
 
             try
             {
                 hClntSock.Connect(servAddr);
-
+               
             }
             catch
             {
@@ -80,15 +91,42 @@ namespace OMOK_Client
 
             }
 
-            hClntSock.Receive(buf, 0, BUF_SIZE, 0);
+            int strLen = hClntSock.Receive(buf, 0, BUF_SIZE-1, 0);
 
-            MessageBox.Show(Encoding.UTF8.GetString(buf));
 
+            string recvStr = Encoding.UTF8.GetString(buf);
+            recvStr = recvStr.Replace("\0", "");
+
+
+            //서버와 연결시, 서버로부터 흰/백을 부여받는다.
+            //string recvStr = Encoding.UTF8.GetString(buf).ToString();
+
+
+
+            if(recvStr != "")
+            {
+                if(recvStr == "White")
+                {
+                    stone = STONE.WHITE; // Whilte 1 Black 2
+                    bTurn = false;
+                }
+                else if(recvStr == "Black")
+                {
+                    stone = STONE.BLACK;
+                    bTurn = true; // Black is First!
+
+                }
+            }
 
         }
 
         private void PictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
+
+            if(bTurn==false) // 차례를 부여받지 못하면 바둑돌을 놓을수 없다.
+            {
+                return;
+            }
             Graphics gp = this.pictureBox1.CreateGraphics();
 
             // MessageBox.Show("X:" + e.X + " Y:" + e.Y);
@@ -148,17 +186,44 @@ namespace OMOK_Client
 
             SolidBrush brush;
 
-            if (bTurn) // 백돌 차례
+            if (stone ==STONE.WHITE ) // 클라가 백돌이고, 차례까지 받았다면
             {
                 brush = new SolidBrush(Color.White);
-                bTurn = false;
+                //bTurn = false;
+                string temp = "W," + targetX.ToString() + "," + targetY.ToString();
+                buf = Encoding.Default.GetBytes(temp);
+                hClntSock.Send(buf);
+                int strLen = hClntSock.Receive(buf);
+
+                string recvStr = Encoding.Default.GetString(buf);
+                string[] recvData = recvStr.Split(',');
+
+                if (recvData[0] == "W")
+                {
+                    bTurn = false;
+                }
+
                 WhiteReposit.Add(new TargetPoint(targetX, targetY));
             }
             else    //흑돌차례
             {
                 brush = new SolidBrush(Color.Black);
-                bTurn = true;
+                //bTurn = true;
+                string temp = "B," + targetX.ToString() + "," + targetY.ToString();
+                buf = Encoding.Default.GetBytes(temp);
+                hClntSock.Send(buf);
+
+                int strLen = hClntSock.Receive(buf);
+                string recvStr = Encoding.Default.GetString(buf);
+                string [] recvData = recvStr.Split(','); 
+
+                if(recvData[0]=="B")
+                {
+                    bTurn = false;
+                }
+                
                 BlackReposit.Add(new TargetPoint(targetX, targetY));
+
             }
             TotalReposit.Push(new TargetPoint(targetX, targetY));
 
@@ -853,6 +918,80 @@ namespace OMOK_Client
                 gp.DrawLine(pen, i, 0, i, pictureBox1.Width); // 세로줄 긋기
             }
 
+        }
+
+        private void PlayForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+
+            hClntSock.Close();
+
+        }
+
+        private void Other_Draw()
+        {
+            
+
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if(bTurn == true)
+            {
+                return;
+            }
+            int strLen = hClntSock.Receive(buf);
+
+            string recvStr = Encoding.Default.GetString(buf);
+
+            SolidBrush brush;
+            Graphics gp = this.pictureBox1.CreateGraphics();
+
+
+            if (recvStr == "")
+            {
+                return;
+            }
+            string[] recvData = recvStr.Split(',');
+
+            if (recvData[0] == "W")
+            {
+                if (stone == STONE.BLACK)
+                {
+                    brush = new SolidBrush(Color.White);
+                    int targetX = int.Parse(recvData[1]);
+                    int targetY = int.Parse(recvData[2]);
+
+                    WhiteReposit.Add(new TargetPoint(targetX, targetY));
+                    gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
+                    bTurn = true;
+
+                }
+                else
+                {
+                    return;
+                }
+
+            }
+            else if (recvData[0] == "B")
+            {
+                if (stone == STONE.BLACK)
+                {
+
+                    return;
+
+                }
+                else
+                {
+                    brush = new SolidBrush(Color.White);
+                    int targetX = int.Parse(recvData[1]);
+                    int targetY = int.Parse(recvData[2]);
+
+                    BlackReposit.Add(new TargetPoint(targetX, targetY));
+                    gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
+                    bTurn = true;
+
+                }
+            }
         }
     }
 }

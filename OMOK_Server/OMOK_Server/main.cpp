@@ -24,8 +24,8 @@ int main()
 	int szAddr=0;
 
 	stack<const char*> turnStack;
-	turnStack.push("Black");
 	turnStack.push("White");
+	turnStack.push("Black");
 
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
@@ -97,7 +97,8 @@ int main()
 					{
 						//buf = turnStack.top();
 						sprintf_s(buf, BUF_SIZE -1,turnStack.top());
-						send(hClntSock, buf, BUF_SIZE - 1, 0);
+						turnStack.pop();
+						send(hClntSock, buf, strlen(buf), 0);
 					}
 					
 
