@@ -66,7 +66,7 @@ int main()
 		timeout.tv_usec = 5000;
 		cpyRead = read;
 
-		int fdNum = select(0, &cpyRead, 0, 0, &timeout);
+		int fdNum = select(read.fd_count, &cpyRead, 0, 0, &timeout);
 		if (fdNum == -1)
 		{
 			cout << "select Error" << endl;
@@ -106,16 +106,39 @@ int main()
 				else
 				{
 					strLen = recv(cpyRead.fd_array[i], buf, BUF_SIZE - 1, 0);
-
+					
+					//cout << "Send Client : " << cpyRead.fd_array[i] << endl;
 					if (strLen == 0)
 					{
 						cout << "Client disconnected" << endl;
-						closesocket(cpyRead.fd_array[i]);
-						FD_CLR(cpyRead.fd_array[i], &read);
+						closesocket(read.fd_array[i]);
+						FD_CLR(read.fd_array[i], &read);
 					}
 					else
-					{
-						send(cpyRead.fd_array[i], buf, BUF_SIZE - 1, 0);
+					{ 
+							
+						for (int i = 0; i < read.fd_count; ++i)
+						{
+							
+							if (read.fd_array[i] != hServSock)
+							{
+								cout << "Send Client : " << read.fd_array[i] << endl;
+								char* tempBuf = new char[strLen+1];
+								for (int i = 0; i < strLen; ++i)
+								{
+									tempBuf[i] = buf[i];
+								}
+								tempBuf[strLen] = '\0';
+								send(read.fd_array[i], tempBuf, strLen+1 - 1, 0);
+								delete []tempBuf;
+							}
+						}
+								
+								
+								
+								
+								
+							
 					}
 
 				}
