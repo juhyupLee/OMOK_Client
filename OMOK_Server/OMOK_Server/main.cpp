@@ -22,6 +22,9 @@ int main()
 
 	int strLen = 0;
 	int szAddr=0;
+	
+	int packetLength = 9;
+
 
 	stack<const char*> turnStack;
 	turnStack.push("White");
@@ -105,10 +108,20 @@ int main()
 				}
 				else
 				{
-					strLen = recv(cpyRead.fd_array[i], buf, BUF_SIZE - 1, 0);
-					
-					//cout << "Send Client : " << cpyRead.fd_array[i] << endl;
-					if (strLen == 0)
+					int readCnt = 0;
+					int readLength = 0;
+
+					while (packetLength > readLength)
+					{
+						readCnt = recv(cpyRead.fd_array[i], &buf[readLength], 1, 0);
+						if (readCnt == 0)
+						{
+							break;
+						}
+						readLength += readCnt;
+
+					}
+					if (readCnt == 0)
 					{
 						cout << "Client disconnected" << endl;
 						closesocket(read.fd_array[i]);
@@ -123,13 +136,14 @@ int main()
 							if (read.fd_array[i] != hServSock)
 							{
 								cout << "Send Client : " << read.fd_array[i] << endl;
-								char* tempBuf = new char[strLen+1];
-								for (int i = 0; i < strLen; ++i)
+								char* tempBuf = new char[packetLength ];
+								for (int i = 0; i < packetLength ; ++i)
 								{
 									tempBuf[i] = buf[i];
 								}
-								tempBuf[strLen] = '\0';
-								send(read.fd_array[i], tempBuf, strLen+1 - 1, 0);
+								//tempBuf[strLen] = '\0';
+								send(read.fd_array[i], tempBuf, packetLength , 0);
+								cout << "Send  Completed" << endl;
 								delete []tempBuf;
 							}
 						}

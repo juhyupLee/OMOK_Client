@@ -194,18 +194,14 @@ namespace OMOK_Client
             {
                 brush = new SolidBrush(Color.White);
                 //bTurn = false;
-                string temp = "W," + targetX.ToString() + "," + targetY.ToString();
-                buf = Encoding.Default.GetBytes(temp);
+                //string temp = "W," + targetX.ToString() + "," + targetY.ToString();
+                //buf = Encoding.Default.GetBytes(temp);
+                buf[0] = (byte)'W';
+                buf[1] = (byte)targetX;
+                buf[5] = (byte)targetY;
+
                 hClntSock.Send(buf);
-                //int strLen = hClntSock.Receive(buf);
-
-                //string recvStr = Encoding.Default.GetString(buf);
-                //string[] recvData = recvStr.Split(',');
-
-                //if (recvData[0] == "W")
-                //{
-                    bTurn = false;
-                //}
+                bTurn = false;
 
                 WhiteReposit.Add(new TargetPoint(targetX, targetY));
             }
@@ -213,8 +209,14 @@ namespace OMOK_Client
             {
                 brush = new SolidBrush(Color.Black);
                 //bTurn = true;
-                string temp = "B," + targetX.ToString() + "," + targetY.ToString();
-                buf = Encoding.Default.GetBytes(temp);
+                //string temp = "B," + targetX.ToString() + "," + targetY.ToString();
+
+                buf[0] = (byte)'B';
+                buf[1] = (byte)targetX;
+                buf[5] = (byte)targetY;
+                //1+4+4 = 9byte
+
+                //buf = Encoding.Default.GetBytes(temp);
                 hClntSock.Send(buf);
 
                 //int strLen = hClntSock.Receive(buf);
@@ -928,6 +930,7 @@ namespace OMOK_Client
         {
 
             hClntSock.Close();
+            
 
         }
 
@@ -961,48 +964,47 @@ namespace OMOK_Client
 
                 hClntSock.Receive(buf);
 
-                //if (stone == STONE.BLACK)
-                //{
-                //    MessageBox.Show("Im black :After Receive");
-                //    System.Threading.Thread.Sleep(5000);
-                //}
-                //else if (stone == STONE.WHITE)
-                //{
-                //    MessageBox.Show("Im White :After Receive");
-                //    System.Threading.Thread.Sleep(5000);
-                //}
-
-                string recvStr = Encoding.Default.GetString(buf);
-                recvStr = recvStr.Trim();
+                if (stone == STONE.BLACK)
+                {
+                    MessageBox.Show("Im black :After Receive");
+                    System.Threading.Thread.Sleep(5000);
+                }
+                else if (stone == STONE.WHITE)
+                {
+                    MessageBox.Show("Im White :After Receive");
+                    System.Threading.Thread.Sleep(5000);
+                }
 
 
-                //if (stone == STONE.BLACK)
-                //{
-                //    MessageBox.Show("Im black:"+ recvStr);
-                //    System.Threading.Thread.Sleep(5000);
-                //}
-                //else if (stone == STONE.WHITE)
-                //{
-                //    MessageBox.Show("Im White :" + recvStr);
-                //    System.Threading.Thread.Sleep(5000);
-                //}
+
+                if (stone == STONE.BLACK)
+                {
+                    MessageBox.Show("Im black:"+buf[1].ToString()+","+buf[5].ToString());
+                    System.Threading.Thread.Sleep(5000);
+                }
+                else if (stone == STONE.WHITE)
+                {
+                    MessageBox.Show("Im White :" + buf[1].ToString() + "," + buf[5].ToString());
+                    System.Threading.Thread.Sleep(5000);
+                }
                 SolidBrush brush;
                 Graphics gp = this.pictureBox1.CreateGraphics();
 
-                if (recvStr == "")
+                if ((char)buf[0] == ' ')
                 {
                     continue;
                 }
-                string[] recvData = recvStr.Split(',');
-                if (recvData[0] == "W")
+                //string[] recvData = recvStr.Split(',');
+                if ((char)buf[0] == 'W')
                 {
                     if (stone == STONE.BLACK)
                     {
                         brush = new SolidBrush(Color.White);
-                        int targetX = int.Parse(recvData[1]);
-                        int targetY = int.Parse(recvData[2]);
+                        int targetX = (int)buf[1];
+                        int targetY = (int)buf[5];
 
                         WhiteReposit.Add(new TargetPoint(targetX, targetY));
+                        MessageBox.Show(" White Pos" +"X:"+targetX.ToString() + "Y:" + targetY.ToString());
                         gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
                         bTurn = true;
 
@@ -1013,7 +1015,7 @@ namespace OMOK_Client
                     }
 
                 }
-                else if (recvData[0] == "B")
+                else if ((char)buf[0] == 'B')
                 {
                     if (stone == STONE.BLACK)
                     {
@@ -1024,10 +1026,11 @@ namespace OMOK_Client
                     else
                     {
                         brush = new SolidBrush(Color.Black);
-                        int targetX = int.Parse(recvData[1]);
-                        int targetY = int.Parse(recvData[2]);
+                        int targetX = (int)buf[1];
+                        int targetY = (int)buf[5];
 
                         BlackReposit.Add(new TargetPoint(targetX, targetY));
+                        MessageBox.Show(" Black Pos" + "X:" + targetX.ToString() + "Y:" + targetY.ToString());
                         gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
                         bTurn = true;
 
