@@ -193,13 +193,17 @@ namespace OMOK_Client
             if (stone ==STONE.WHITE ) // 클라가 백돌이고, 차례까지 받았다면
             {
                 brush = new SolidBrush(Color.White);
-                //bTurn = false;
-                //string temp = "W," + targetX.ToString() + "," + targetY.ToString();
-                //buf = Encoding.Default.GetBytes(temp);
-                buf[0] = (byte)'W';
-                buf[1] = (byte)targetX;
-                buf[5] = (byte)targetY;
 
+                buf[0] = (byte)'W';
+                buf[1] = (byte)(targetX & 0x000000ff);
+                buf[2] = (byte)((targetX & 0x0000ff00) >> 8);
+                buf[3] = (byte)((targetX & 0x00ff0000) >> 16);
+                buf[4] = (byte)((targetX & 0xff000000) >> 24);
+
+                buf[5] = (byte)(targetY & 0x000000ff);
+                buf[6] = (byte)((targetY & 0x0000ff00) >> 8);
+                buf[7] = (byte)((targetY & 0x00ff0000) >> 16);
+                buf[8] = (byte)((targetY & 0xff000000) >> 24);
                 hClntSock.Send(buf);
                 bTurn = false;
 
@@ -208,25 +212,18 @@ namespace OMOK_Client
             else    //흑돌차례
             {
                 brush = new SolidBrush(Color.Black);
-                //bTurn = true;
-                //string temp = "B," + targetX.ToString() + "," + targetY.ToString();
-
                 buf[0] = (byte)'B';
-                buf[1] = (byte)targetX;
-                buf[5] = (byte)targetY;
-                //1+4+4 = 9byte
+                buf[1] = (byte)(targetX &  0x000000ff);
+                buf[2]= (byte)((targetX &  0x0000ff00)>>8);
+                buf[3] = (byte)((targetX & 0x00ff0000) >> 16);
+                buf[4] = (byte)((targetX & 0xff000000) >> 24);
 
-                //buf = Encoding.Default.GetBytes(temp);
-                hClntSock.Send(buf);
+                buf[5] = (byte)(targetY & 0x000000ff);
+                buf[6] = (byte)((targetY & 0x0000ff00) >> 8);
+                buf[7] = (byte)((targetY & 0x00ff0000) >> 16);
+                buf[8] = (byte)((targetY & 0xff000000) >> 24);
 
-                //int strLen = hClntSock.Receive(buf);
-                //string recvStr = Encoding.Default.GetString(buf);
-                //string [] recvData = recvStr.Split(','); 
-
-                //if(recvData[0]=="B")
-                //{
                     bTurn = false;
-                //}
                 
                 BlackReposit.Add(new TargetPoint(targetX, targetY));
 
@@ -949,44 +946,8 @@ namespace OMOK_Client
                 {
                     continue;
                 }
-
-
-                //if (stone == STONE.BLACK)
-                //{
-                //    MessageBox.Show("Im black :Prev Receive");
-                //    System.Threading.Thread.Sleep(5000);
-                //}
-                //else if (stone == STONE.WHITE)
-                //{
-                //    MessageBox.Show("Im White :Prev Receive");
-                //    System.Threading.Thread.Sleep(5000);
-                //}
-
                 hClntSock.Receive(buf);
 
-                if (stone == STONE.BLACK)
-                {
-                    MessageBox.Show("Im black :After Receive");
-                    System.Threading.Thread.Sleep(5000);
-                }
-                else if (stone == STONE.WHITE)
-                {
-                    MessageBox.Show("Im White :After Receive");
-                    System.Threading.Thread.Sleep(5000);
-                }
-
-
-
-                if (stone == STONE.BLACK)
-                {
-                    MessageBox.Show("Im black:"+buf[1].ToString()+","+buf[5].ToString());
-                    System.Threading.Thread.Sleep(5000);
-                }
-                else if (stone == STONE.WHITE)
-                {
-                    MessageBox.Show("Im White :" + buf[1].ToString() + "," + buf[5].ToString());
-                    System.Threading.Thread.Sleep(5000);
-                }
                 SolidBrush brush;
                 Graphics gp = this.pictureBox1.CreateGraphics();
 
@@ -1000,8 +961,9 @@ namespace OMOK_Client
                     if (stone == STONE.BLACK)
                     {
                         brush = new SolidBrush(Color.White);
-                        int targetX = (int)buf[1];
-                        int targetY = (int)buf[5];
+
+                        int targetX = BitConverter.ToInt32(buf, 1);
+                        int targetY = BitConverter.ToInt32(buf, 5); 
 
                         WhiteReposit.Add(new TargetPoint(targetX, targetY));
                         MessageBox.Show(" White Pos" +"X:"+targetX.ToString() + "Y:" + targetY.ToString());
@@ -1026,8 +988,8 @@ namespace OMOK_Client
                     else
                     {
                         brush = new SolidBrush(Color.Black);
-                        int targetX = (int)buf[1];
-                        int targetY = (int)buf[5];
+                        int targetX = BitConverter.ToInt32(buf, 1);
+                        int targetY = BitConverter.ToInt32(buf, 5);
 
                         BlackReposit.Add(new TargetPoint(targetX, targetY));
                         MessageBox.Show(" Black Pos" + "X:" + targetX.ToString() + "Y:" + targetY.ToString());

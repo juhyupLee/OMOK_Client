@@ -108,20 +108,9 @@ int main()
 				}
 				else
 				{
-					int readCnt = 0;
-					int readLength = 0;
+					strLen = recv(cpyRead.fd_array[i], buf, BUF_SIZE, 0);
 
-					while (packetLength > readLength)
-					{
-						readCnt = recv(cpyRead.fd_array[i], &buf[readLength], 1, 0);
-						if (readCnt == 0)
-						{
-							break;
-						}
-						readLength += readCnt;
-
-					}
-					if (readCnt == 0)
+					if (strLen == 0)
 					{
 						cout << "Client disconnected" << endl;
 						closesocket(read.fd_array[i]);
@@ -147,10 +136,6 @@ int main()
 								delete []tempBuf;
 							}
 						}
-								
-								
-								
-								
 								
 							
 					}
