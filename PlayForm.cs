@@ -1002,5 +1002,18 @@ namespace OMOK_Client
             }
 
         }
+
+        private void TextBox1_KeyDown(object sender, KeyEventArgs e)
+        {
+            //textBox1.Text += e.KeyCode.ToString();
+           
+        }
+
+        private void TextBox1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            textBox1.Text += e.KeyChar;
+         
+        }  
+
     }
 }
