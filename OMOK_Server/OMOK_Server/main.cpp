@@ -23,7 +23,7 @@ int main()
 	int strLen = 0;
 	int szAddr=0;
 	
-	int packetLength = 9;
+	int packetLength = 10;
 
 
 	stack<const char*> turnStack;
@@ -115,6 +115,7 @@ int main()
 						cout << "Client disconnected" << endl;
 						closesocket(read.fd_array[i]);
 						FD_CLR(read.fd_array[i], &read);
+						break;
 					}
 					else
 					{ 
@@ -124,16 +125,34 @@ int main()
 							
 							if (read.fd_array[i] != hServSock)
 							{
-								cout << "Send Client : " << read.fd_array[i] << endl;
-								char* tempBuf = new char[packetLength ];
-								for (int i = 0; i < packetLength ; ++i)
+								if (buf[1] == 'M')
 								{
-									tempBuf[i] = buf[i];
+									char tempBuf[BUF_SIZE];
+									int bufIDX = 0;
+									for (bufIDX = 0; buf[bufIDX] != '\0'; ++bufIDX)
+									{
+										tempBuf[bufIDX] = buf[bufIDX];
+									}
+									tempBuf[bufIDX] = '\0';
+
+									send(read.fd_array[i], tempBuf, bufIDX +1, 0);
+									cout << "Send to Client[Message] : " << read.fd_array[i] << endl;
+									
 								}
-								//tempBuf[strLen] = '\0';
-								send(read.fd_array[i], tempBuf, packetLength , 0);
-								cout << "Send  Completed" << endl;
-								delete []tempBuf;
+								else if(buf[1]=='P')
+								{
+									char* tempBuf = new char[packetLength];
+									for (int i = 0; i < packetLength; ++i)
+									{
+										tempBuf[i] = buf[i];
+									}
+									send(read.fd_array[i], tempBuf, packetLength, 0);
+									cout << "Send to Client[Position] : " << read.fd_array[i] << endl;
+									delete[]tempBuf;
+								}
+								
+
+								
 							}
 						}
 								

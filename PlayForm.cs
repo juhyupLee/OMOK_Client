@@ -62,8 +62,11 @@ namespace OMOK_Client
         readonly int LineCount = 15; // 15 X 15 의 바둑판 배열
         readonly int Radian = 10;
         bool bTurn = true;// true 백 false 흑
+        bool bConnect = false; // is Connect?
         STONE stone = 0;
-        BackgroundWorker worker;
+        //BackgroundWorker worker1;
+        BackgroundWorker worker2;
+
 
         public PlayForm()
         {
@@ -77,12 +80,16 @@ namespace OMOK_Client
 
             buf = new byte[1024];
 
-            worker = new BackgroundWorker();
+            //worker1 = new BackgroundWorker();
+            worker2 = new BackgroundWorker();
 
-            worker.DoWork += new DoWorkEventHandler(OtherTurn);
-            worker.RunWorkerAsync();
+            //worker1.DoWork += new DoWorkEventHandler(OtherTurn);
+            worker2.DoWork += new DoWorkEventHandler(Chatting_Recv);
 
-    
+            //worker1.RunWorkerAsync();
+            worker2.RunWorkerAsync();
+
+         
 
             try
             {
@@ -101,13 +108,14 @@ namespace OMOK_Client
             string recvStr = Encoding.UTF8.GetString(buf);
             recvStr = recvStr.Replace("\0", "");
 
+           
 
             //서버와 연결시, 서버로부터 흰/백을 부여받는다.
             //string recvStr = Encoding.UTF8.GetString(buf).ToString();
 
 
 
-            if(recvStr != "")
+            if (recvStr != "")
             {
                 if(recvStr == "White")
                 {
@@ -120,6 +128,8 @@ namespace OMOK_Client
                     bTurn = true; // Black is First!
 
                 }
+
+                bConnect = true;
             }
 
         }
@@ -194,18 +204,19 @@ namespace OMOK_Client
             {
                 brush = new SolidBrush(Color.White);
 
-                buf[0] = (byte)'W';
-                buf[1] = (byte)(targetX & 0x000000ff);
-                buf[2] = (byte)((targetX & 0x0000ff00) >> 8);
-                buf[3] = (byte)((targetX & 0x00ff0000) >> 16);
-                buf[4] = (byte)((targetX & 0xff000000) >> 24);
+                buf[0] = (byte)'W'; // White
+                buf[1] = (byte)'P'; // Point Info
+                buf[2] = (byte)(targetX & 0x000000ff);
+                buf[3] = (byte)((targetX & 0x0000ff00) >> 8);
+                buf[4] = (byte)((targetX & 0x00ff0000) >> 16);
+                buf[5] = (byte)((targetX & 0xff000000) >> 24);
 
-                buf[5] = (byte)(targetY & 0x000000ff);
-                buf[6] = (byte)((targetY & 0x0000ff00) >> 8);
-                buf[7] = (byte)((targetY & 0x00ff0000) >> 16);
-                buf[8] = (byte)((targetY & 0xff000000) >> 24);
+                buf[6] = (byte)(targetY & 0x000000ff);
+                buf[7] = (byte)((targetY & 0x0000ff00) >> 8);
+                buf[8] = (byte)((targetY & 0x00ff0000) >> 16);
+                buf[9] = (byte)((targetY & 0xff000000) >> 24);
                 hClntSock.Send(buf);
-                bTurn = false;
+               // bTurn = false;
 
                 WhiteReposit.Add(new TargetPoint(targetX, targetY));
             }
@@ -213,17 +224,18 @@ namespace OMOK_Client
             {
                 brush = new SolidBrush(Color.Black);
                 buf[0] = (byte)'B';
-                buf[1] = (byte)(targetX &  0x000000ff);
-                buf[2]= (byte)((targetX &  0x0000ff00)>>8);
-                buf[3] = (byte)((targetX & 0x00ff0000) >> 16);
-                buf[4] = (byte)((targetX & 0xff000000) >> 24);
+                buf[1] = (byte)'P'; // Point Info
+                buf[2] = (byte)(targetX &  0x000000ff);
+                buf[3]= (byte)((targetX &  0x0000ff00)>>8);
+                buf[4] = (byte)((targetX & 0x00ff0000) >> 16);
+                buf[5] = (byte)((targetX & 0xff000000) >> 24);
 
-                buf[5] = (byte)(targetY & 0x000000ff);
-                buf[6] = (byte)((targetY & 0x0000ff00) >> 8);
-                buf[7] = (byte)((targetY & 0x00ff0000) >> 16);
-                buf[8] = (byte)((targetY & 0xff000000) >> 24);
-
-                    bTurn = false;
+                buf[6] = (byte)(targetY & 0x000000ff);
+                buf[7] = (byte)((targetY & 0x0000ff00) >> 8);
+                buf[8] = (byte)((targetY & 0x00ff0000) >> 16);
+                buf[9] = (byte)((targetY & 0xff000000) >> 24);
+                hClntSock.Send(buf);
+                //bTurn = false;
                 
                 BlackReposit.Add(new TargetPoint(targetX, targetY));
 
@@ -925,95 +937,216 @@ namespace OMOK_Client
 
         private void PlayForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-
+            //hClntSock.Shutdown()
             hClntSock.Close();
             
 
         }
+        //private void OtherTurn(object sender, DoWorkEventArgs e)
+        //{
 
-        private void Other_Draw()
+        //    while(true)
+        //    {
+        //        if (stone == STONE.WHITE)
+        //        {
+        //            textBox2.Text = "[White] :Before Receive";
+        //        }
+        //        if (stone == STONE.BLACK)
+        //        {
+        //            textBox2.Text = "[BLACK] :Before Receive";
+        //        }
+
+        //        if (bTurn == true)
+        //        {
+        //            continue;
+        //        }
+        //        hClntSock.Receive(buf);
+        //        if(stone==STONE.WHITE)
+        //        {
+        //            textBox2.Text = "[White] :After Receive";
+        //        }
+        //        if (stone == STONE.BLACK)
+        //        {
+        //            textBox2.Text = "[BLACK] :After Receive";
+        //        }
+
+        //        SolidBrush brush;
+        //        Graphics gp = this.pictureBox1.CreateGraphics();
+
+        //        if ((char)buf[0] == ' ')
+        //        {
+        //            continue;
+        //        }
+
+        //        if((char)buf[1]=='P') // Point Info
+        //        {
+        //            if ((char)buf[0] == 'W')
+        //            {
+        //                if (stone == STONE.BLACK)
+        //                {
+        //                    brush = new SolidBrush(Color.White);
+
+        //                    int targetX = BitConverter.ToInt32(buf, 1);
+        //                    int targetY = BitConverter.ToInt32(buf, 5);
+
+        //                    WhiteReposit.Add(new TargetPoint(targetX, targetY));
+        //                    textBox2.Text = " White Pos" + "X:" + targetX.ToString() + "Y:" + targetY.ToString();
+        //                    gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
+        //                    bTurn = true;
+
+        //                }
+        //                else
+        //                {
+        //                    continue;
+        //                }
+
+        //            }
+        //            else if ((char)buf[0] == 'B')
+        //            {
+        //                if (stone == STONE.BLACK)
+        //                {
+
+        //                    continue;
+
+        //                }
+        //                else
+        //                {
+        //                    brush = new SolidBrush(Color.Black);
+        //                    int targetX = BitConverter.ToInt32(buf, 1);
+        //                    int targetY = BitConverter.ToInt32(buf, 5);
+
+        //                    BlackReposit.Add(new TargetPoint(targetX, targetY));
+        //                    textBox2.Text = " Black Pos" + "X:" + targetX.ToString() + "Y:" + targetY.ToString();
+        //                    gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
+        //                    bTurn = true;
+
+        //                }
+        //            }
+        //        }
+
+
+        //    }
+
+        //}
+
+
+        private void OtherTurn()
         {
-            
+          
+            SolidBrush brush;
+            Graphics gp = this.pictureBox1.CreateGraphics();
 
+            if ((char)buf[0] == 'W')
+            {
+                if (stone == STONE.BLACK)
+                {
+                    brush = new SolidBrush(Color.White);
+
+                    int targetX = BitConverter.ToInt32(buf, 2);
+                    int targetY = BitConverter.ToInt32(buf, 6);
+
+                    WhiteReposit.Add(new TargetPoint(targetX, targetY));
+                    //textBox2.Text = " White Pos" + "X:" + targetX.ToString() + "Y:" + targetY.ToString();
+                    gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
+                    bTurn = true;
+
+                }
+                else
+                {
+                    bTurn = false;
+                }
+
+            }
+            else if ((char)buf[0] == 'B')
+            {
+                if (stone == STONE.BLACK)
+                {
+
+                    bTurn = false; // Recv Black, Stone Black  -> Turn X
+
+                }
+                else
+                {
+                    brush = new SolidBrush(Color.Black);
+                    int targetX = BitConverter.ToInt32(buf, 2);
+                    int targetY = BitConverter.ToInt32(buf, 6);
+
+                    BlackReposit.Add(new TargetPoint(targetX, targetY));
+                    //textBox2.Text = " Black Pos" + "X:" + targetX.ToString() + "Y:" + targetY.ToString();
+                    gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
+                    bTurn = true;
+
+                }
+            }
         }
-
-        private void OtherTurn(object sender, DoWorkEventArgs e)
+        private void Chatting_Recv(object sender, DoWorkEventArgs e)
         {
-
             while(true)
             {
-                if (bTurn == true)
+                if(!bConnect)
                 {
                     continue;
                 }
-                hClntSock.Receive(buf);
-
-                SolidBrush brush;
-                Graphics gp = this.pictureBox1.CreateGraphics();
-
-                if ((char)buf[0] == ' ')
+                int strLen = hClntSock.Receive(buf);
+                if ((char)buf[1] == 'M')
                 {
-                    continue;
-                }
-                //string[] recvData = recvStr.Split(',');
-                if ((char)buf[0] == 'W')
-                {
-                    if (stone == STONE.BLACK)
+                    string chatMessage = Encoding.Default.GetString(buf, 2, strLen-2).Trim();
+                    if((char)buf[0]=='W')
                     {
-                        brush = new SolidBrush(Color.White);
-
-                        int targetX = BitConverter.ToInt32(buf, 1);
-                        int targetY = BitConverter.ToInt32(buf, 5); 
-
-                        WhiteReposit.Add(new TargetPoint(targetX, targetY));
-                        MessageBox.Show(" White Pos" +"X:"+targetX.ToString() + "Y:" + targetY.ToString());
-                        gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
-                        bTurn = true;
-
+                        listBox1.Items.Add("[White]: "+chatMessage);
                     }
-                    else
+                    else if((char)buf[0]=='B')
                     {
-                        continue;
+                        listBox1.Items.Add("[Black]: " + chatMessage);
                     }
+                    //listBox1.Items.Add(chatMessage);
+                    listBox1.SelectedIndex = listBox1.Items.Count - 1;
 
                 }
-                else if ((char)buf[0] == 'B')
+                else if((char)buf[1]=='P')
                 {
-                    if (stone == STONE.BLACK)
-                    {
+                    OtherTurn();
+                }
+            }
+        }
+        private void TextBox1_KeyDown(object sender, KeyEventArgs e)
+        {
+            //textBox1.Text += e.KeyCode.ToString();
+            if (e.KeyCode == Keys.Enter)
+            {
+                System.Array.Clear(buf, 0, BUF_SIZE);
 
-                        continue;
-
-                    }
-                    else
-                    {
-                        brush = new SolidBrush(Color.Black);
-                        int targetX = BitConverter.ToInt32(buf, 1);
-                        int targetY = BitConverter.ToInt32(buf, 5);
-
-                        BlackReposit.Add(new TargetPoint(targetX, targetY));
-                        MessageBox.Show(" Black Pos" + "X:" + targetX.ToString() + "Y:" + targetY.ToString());
-                        gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
-                        bTurn = true;
-
-                    }
+                if(stone==STONE.BLACK)
+                {
+                    //listBox1.Items.Add("[Black]: "+textBox1.Text);
+                    buf[0] = (byte)'B';
+                }
+                else if(stone ==STONE.WHITE)
+                {
+                    //listBox1.Items.Add("[White]: " + textBox1.Text);
+                    buf[0] = (byte)'W';
                 }
                 
+            
+                buf[1] = (byte)'M'; // Message Packet 
+                
+
+                byte[] strByte = Encoding.Default.GetBytes(textBox1.Text);
+
+                for(int i=0;i<strByte.Length;++i)
+                {
+                    buf[i+2] = strByte[i];
+                }
+                //Send Chat Message to Server
+                hClntSock.Send(buf);
+
+                textBox1.Clear();
+
             }
 
         }
 
-        private void TextBox1_KeyDown(object sender, KeyEventArgs e)
-        {
-            //textBox1.Text += e.KeyCode.ToString();
-           
-        }
-
-        private void TextBox1_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            textBox1.Text += e.KeyChar;
-         
-        }  
+   
 
     }
 }
