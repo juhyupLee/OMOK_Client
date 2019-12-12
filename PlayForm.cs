@@ -55,6 +55,8 @@ namespace OMOK_Client
         //소켓관련변수
         Socket hClntSock;
         IPEndPoint servAddr;
+        int socketID = 0;
+
         byte[] buf;
 
         readonly int BUF_SIZE = 1024;
@@ -102,35 +104,39 @@ namespace OMOK_Client
 
             }
 
-            int strLen = hClntSock.Receive(buf, 0, BUF_SIZE-1, 0);
+            //Packet : C+Client Socket Number , PacketSize :5
+            //서버와 연결시, 서버로부터 Client 소켓 아이디어를 받는다
+            int strLen = hClntSock.Receive(buf, 0, 5, 0);
+
+            socketID = BitConverter.ToInt16(buf, 1);
 
 
-            string recvStr = Encoding.UTF8.GetString(buf);
-            recvStr = recvStr.Replace("\0", "");
+            //string recvStr = Encoding.UTF8.GetString(buf);
+            //recvStr = recvStr.Replace("\0", "");
 
            
 
-            //서버와 연결시, 서버로부터 흰/백을 부여받는다.
+          
             //string recvStr = Encoding.UTF8.GetString(buf).ToString();
 
 
 
-            if (recvStr != "")
-            {
-                if(recvStr == "White")
-                {
-                    stone = STONE.WHITE; // Whilte 1 Black 2
-                    bTurn = false;
-                }
-                else if(recvStr == "Black")
-                {
-                    stone = STONE.BLACK;
-                    bTurn = true; // Black is First!
+            //if (recvStr != "")
+            //{
+            //    if(recvStr == "White")
+            //    {
+            //        stone = STONE.WHITE; // Whilte 1 Black 2
+            //        bTurn = false;
+            //    }
+            //    else if(recvStr == "Black")
+            //    {
+            //        stone = STONE.BLACK;
+            //        bTurn = true; // Black is First!
 
-                }
+            //    }
 
                 bConnect = true;
-            }
+            //}
 
         }
 
@@ -246,6 +252,7 @@ namespace OMOK_Client
             if (WinnerCheck(ref BlackReposit))
             {
                 MessageBox.Show("흑이 이겼습니다");
+
             }
             if (WinnerCheck(ref WhiteReposit))
             {
@@ -1050,6 +1057,7 @@ namespace OMOK_Client
                     gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
                     bTurn = true;
 
+
                 }
                 else
                 {
@@ -1078,6 +1086,17 @@ namespace OMOK_Client
 
                 }
             }
+
+            if (WinnerCheck(ref BlackReposit))
+            {
+                MessageBox.Show("흑이 이겼습니다");
+            }
+            if (WinnerCheck(ref WhiteReposit))
+            {
+                MessageBox.Show("백이 이겼습니다");
+            }
+
+
         }
         private void Chatting_Recv(object sender, DoWorkEventArgs e)
         {
@@ -1088,18 +1107,13 @@ namespace OMOK_Client
                     continue;
                 }
                 int strLen = hClntSock.Receive(buf);
-                if ((char)buf[1] == 'M')
+                if ((char)buf[0] == 'M')
                 {
-                    string chatMessage = Encoding.Default.GetString(buf, 2, strLen-2).Trim();
-                    if((char)buf[0]=='W')
-                    {
-                        listBox1.Items.Add("[White]: "+chatMessage);
-                    }
-                    else if((char)buf[0]=='B')
-                    {
-                        listBox1.Items.Add("[Black]: " + chatMessage);
-                    }
-                    //listBox1.Items.Add(chatMessage);
+                    string chatMessage = Encoding.Default.GetString(buf, 5, strLen-5).Trim();
+                    int id = BitConverter.ToInt16(buf, 1);
+                    listBox1.Items.Add("[" + id.ToString() + "]: " + chatMessage);
+
+                    //Chatting highlight Function
                     listBox1.SelectedIndex = listBox1.Items.Count - 1;
 
                 }
@@ -1115,27 +1129,19 @@ namespace OMOK_Client
             if (e.KeyCode == Keys.Enter)
             {
                 System.Array.Clear(buf, 0, BUF_SIZE);
-
-                if(stone==STONE.BLACK)
-                {
-                    //listBox1.Items.Add("[Black]: "+textBox1.Text);
-                    buf[0] = (byte)'B';
-                }
-                else if(stone ==STONE.WHITE)
-                {
-                    //listBox1.Items.Add("[White]: " + textBox1.Text);
-                    buf[0] = (byte)'W';
-                }
-                
             
-                buf[1] = (byte)'M'; // Message Packet 
-                
+                buf[0] = (byte)'M'; // Message Packet 
+                buf[1] = (byte)(socketID & 0x000000ff);
+                buf[2] = (byte)((socketID & 0x0000ff00) >> 8);
+                buf[3] = (byte)((socketID & 0x00ff0000) >> 16);
+                buf[4] = (byte)((socketID & 0xff000000) >> 24);
 
+                //TextBox's Text -> Buffer
                 byte[] strByte = Encoding.Default.GetBytes(textBox1.Text);
 
                 for(int i=0;i<strByte.Length;++i)
                 {
-                    buf[i+2] = strByte[i];
+                    buf[i+5] = strByte[i];
                 }
                 //Send Chat Message to Server
                 hClntSock.Send(buf);

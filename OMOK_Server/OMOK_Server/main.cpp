@@ -1,16 +1,20 @@
 #include <WinSock2.h>
 #include <iostream>
 #include <stack>
+#include <string>
 
 using namespace std;
 
 enum
 {
 	BUF_SIZE = 1024,
-	PORT = 1234
+	PORT = 1234,
+	SOCKET_QUEUE = 1000 // Client 1000명까지 대기자 수용
 };
 int main()
 {
+
+	
 	WSADATA wsaData;
 	SOCKET hServSock, hClntSock;
 	SOCKADDR_IN servAddr, clntAddr;
@@ -27,8 +31,8 @@ int main()
 
 
 	stack<const char*> turnStack;
-	turnStack.push("White");
-	turnStack.push("Black");
+	turnStack.push("W");
+	turnStack.push("B");
 
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
@@ -60,7 +64,7 @@ int main()
 	FD_ZERO(&read);
 	FD_SET(hServSock, &read);
 
-	listen(hServSock, 2);
+	listen(hServSock, SOCKET_QUEUE);
 
 	while (1)
 	{
@@ -69,7 +73,7 @@ int main()
 		timeout.tv_usec = 5000;
 		cpyRead = read;
 
-		int fdNum = select(read.fd_count, &cpyRead, 0, 0, &timeout);
+		int fdNum = select(0, &cpyRead, 0, 0, &timeout);
 		if (fdNum == -1)
 		{
 			cout << "select Error" << endl;
@@ -94,15 +98,24 @@ int main()
 					FD_SET(hClntSock, &read);
 
 					cout << "Connected Client " << hClntSock << endl;
+					//C: Connected , + Clinet Socket
+					buf[0] = 'C';
+					buf[1] = (hClntSock & 0x000000ff);
+					buf[2] = ((hClntSock & 0x0000ff00) >> 8);
+					buf[3] = ((hClntSock & 0x00ff0000) >> 16);
+					buf[4] = ((hClntSock & 0xff000000) >> 24);
 
-					//연결되자마자 흑//백 할당???
-					if (!turnStack.empty())
-					{
-						//buf = turnStack.top();
-						sprintf_s(buf, BUF_SIZE -1,turnStack.top());
-						turnStack.pop();
-						send(hClntSock, buf, strlen(buf), 0);
-					}
+					send(hClntSock, buf, 5, 0);
+					////연결되자마자 흑//백 할당???
+					//if (!turnStack.empty())
+					//{
+					//	//buf = turnStack.top();
+					//	sprintf_s(buf, BUF_SIZE -1,turnStack.top());
+					//	turnStack.pop();
+					//	
+					//	send(hClntSock, buf, strlen(buf), 0);
+
+					//}
 					
 
 				}
@@ -110,12 +123,12 @@ int main()
 				{
 					strLen = recv(cpyRead.fd_array[i], buf, BUF_SIZE, 0);
 
-					if (strLen == 0)
+					if (strLen <0)
 					{
-						cout << "Client disconnected" << endl;
-						closesocket(read.fd_array[i]);
-						FD_CLR(read.fd_array[i], &read);
-						break;
+						cout << "Client["<<cpyRead.fd_array[i]<<"]"<< "disconnected" << endl;
+						FD_CLR(cpyRead.fd_array[i], &read);
+						closesocket(cpyRead.fd_array[i]);
+						//break;
 					}
 					else
 					{ 
@@ -125,11 +138,17 @@ int main()
 							
 							if (read.fd_array[i] != hServSock)
 							{
-								if (buf[1] == 'M')
+								if (buf[0] == 'M')
 								{
 									char tempBuf[BUF_SIZE];
 									int bufIDX = 0;
-									for (bufIDX = 0; buf[bufIDX] != '\0'; ++bufIDX)
+									//Packet 0~4 
+									for (bufIDX = 0; bufIDX<=4 ; ++bufIDX)
+									{
+										tempBuf[bufIDX] = buf[bufIDX];
+									}
+									// Packet 5~~~널문자까지
+									for (bufIDX; buf[bufIDX] != '\0'; ++bufIDX)
 									{
 										tempBuf[bufIDX] = buf[bufIDX];
 									}
