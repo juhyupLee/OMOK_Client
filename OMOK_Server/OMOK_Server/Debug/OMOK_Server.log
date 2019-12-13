@@ -1,3 +1,4 @@
 ﻿  main.cpp
-D:\Project reposit\OMOK_Client\OMOK_Client\OMOK_Server\OMOK_Server\main.cpp(136,25): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+D:\Project reposit\OMOK_Client\OMOK_Client\OMOK_Server\OMOK_Server\main.cpp(162,26): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+D:\Project reposit\OMOK_Client\OMOK_Client\OMOK_Server\OMOK_Server\main.cpp(188,26): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
   OMOK_Server.vcxproj -> D:\Project reposit\OMOK_Client\OMOK_Client\OMOK_Server\Debug\OMOK_Server.exe

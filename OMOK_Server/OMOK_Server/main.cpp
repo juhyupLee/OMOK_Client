@@ -9,7 +9,9 @@ enum
 {
 	BUF_SIZE = 1024,
 	PORT = 1234,
-	SOCKET_QUEUE = 1000 // Client 1000명까지 대기자 수용
+	SOCKET_QUEUE = 1000, // Client 1000명까지 대기자 수용
+	POS_PACKET = 10
+
 };
 int main()
 {
@@ -21,18 +23,22 @@ int main()
 	TIMEVAL timeout;
 	fd_set read,cpyRead;
 
+
 	//const char* PORT = "1234";
 	char buf[BUF_SIZE];
 
 	int strLen = 0;
 	int szAddr=0;
-	
+	int readyCount = 0;
+
 	int packetLength = 10;
 
 
-	stack<const char*> turnStack;
-	turnStack.push("W");
-	turnStack.push("B");
+	stack<char> stoneStack;
+	stack<SOCKET> socketStack;
+
+	stoneStack.push('W');
+	stoneStack.push('B');
 
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
@@ -105,18 +111,7 @@ int main()
 					buf[3] = ((hClntSock & 0x00ff0000) >> 16);
 					buf[4] = ((hClntSock & 0xff000000) >> 24);
 
-					send(hClntSock, buf, 5, 0);
-					////연결되자마자 흑//백 할당???
-					//if (!turnStack.empty())
-					//{
-					//	//buf = turnStack.top();
-					//	sprintf_s(buf, BUF_SIZE -1,turnStack.top());
-					//	turnStack.pop();
-					//	
-					//	send(hClntSock, buf, strlen(buf), 0);
-
-					//}
-					
+					send(hClntSock, buf, 5, 0);					
 
 				}
 				else
@@ -132,49 +127,83 @@ int main()
 					}
 					else
 					{ 
-							
-						for (int i = 0; i < read.fd_count; ++i)
+						if (buf[0] == 'J')
 						{
-							
-							if (read.fd_array[i] != hServSock)
+							////클라이언트측에서 J 패킷이 들어오면  Join
+							if (!stoneStack.empty() && buf[1] == '\0')
 							{
-								if (buf[0] == 'M')
+								buf[0] = 'J';
+								buf[1] = stoneStack.top();
+								stoneStack.pop();
+
+								socketStack.push(cpyRead.fd_array[i]);
+								send(cpyRead.fd_array[i], buf, 2, 0); //ECHO
+								cout << "Send to Client[Join] : " << cpyRead.fd_array[i] << endl;
+								
+							}
+							else if (buf[1] == 'W' || buf[1] == 'B')
+							{
+								if (socketStack.size() == 2)
+								{
+									while (!socketStack.empty())
+									{
+										memset(buf, 0, sizeof(buf));
+										buf[0] = 'S'; //Start Packet
+										send(socketStack.top(), buf, 1, 0);
+										cout << "Send to Client[Join] : " << socketStack.top() << endl;
+										socketStack.pop();
+									}
+								}
+							}
+
+						}
+						else if (buf[0] == 'M')
+						{
+							for (int i = 0; i < read.fd_count; ++i)
+							{
+								if (read.fd_array[i] != hServSock)
 								{
 									char tempBuf[BUF_SIZE];
 									int bufIDX = 0;
-									//Packet 0~4 
-									for (bufIDX = 0; bufIDX<=4 ; ++bufIDX)
+									//Packet 0~4  0:M , 1~4 : socketID
+									for (bufIDX = 0; bufIDX <= 4; ++bufIDX)
 									{
 										tempBuf[bufIDX] = buf[bufIDX];
 									}
-									// Packet 5~~~널문자까지
+									// Packet 5~~~NULL : Message Copy
 									for (bufIDX; buf[bufIDX] != '\0'; ++bufIDX)
 									{
 										tempBuf[bufIDX] = buf[bufIDX];
 									}
 									tempBuf[bufIDX] = '\0';
 
-									send(read.fd_array[i], tempBuf, bufIDX +1, 0);
+									send(read.fd_array[i], tempBuf, bufIDX + 1, 0);
 									cout << "Send to Client[Message] : " << read.fd_array[i] << endl;
-									
 								}
-								else if(buf[1]=='P')
+							}
+
+						}
+						else if (buf[1] == 'P')
+						{
+							for (int i = 0; i < read.fd_count; ++i)
+							{
+								if (read.fd_array[i] != hServSock)
 								{
-									char* tempBuf = new char[packetLength];
-									for (int i = 0; i < packetLength; ++i)
+									char tempBuf[POS_PACKET];
+									for (int i = 0; i < POS_PACKET; ++i)
 									{
 										tempBuf[i] = buf[i];
 									}
-									send(read.fd_array[i], tempBuf, packetLength, 0);
+									send(read.fd_array[i], tempBuf, POS_PACKET, 0);
 									cout << "Send to Client[Position] : " << read.fd_array[i] << endl;
-									delete[]tempBuf;
 								}
-								
-
-								
 							}
 						}
-								
+						else if (buf[0] == 'E')
+						{
+							stoneStack.push(buf[1]);
+
+						}
 							
 					}
 

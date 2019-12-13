@@ -63,8 +63,10 @@ namespace OMOK_Client
 
         readonly int LineCount = 15; // 15 X 15 의 바둑판 배열
         readonly int Radian = 10;
-        bool bTurn = true;// true 백 false 흑
+        bool bTurn = false;// Omok's Turn 
         bool bConnect = false; // is Connect?
+        bool bReady = true;
+
         STONE stone = 0;
         //BackgroundWorker worker1;
         BackgroundWorker worker2;
@@ -82,13 +84,11 @@ namespace OMOK_Client
 
             buf = new byte[1024];
 
-            //worker1 = new BackgroundWorker();
             worker2 = new BackgroundWorker();
+            
 
-            //worker1.DoWork += new DoWorkEventHandler(OtherTurn);
             worker2.DoWork += new DoWorkEventHandler(Chatting_Recv);
 
-            //worker1.RunWorkerAsync();
             worker2.RunWorkerAsync();
 
          
@@ -107,36 +107,9 @@ namespace OMOK_Client
             //Packet : C+Client Socket Number , PacketSize :5
             //서버와 연결시, 서버로부터 Client 소켓 아이디어를 받는다
             int strLen = hClntSock.Receive(buf, 0, 5, 0);
-
             socketID = BitConverter.ToInt16(buf, 1);
-
-
-            //string recvStr = Encoding.UTF8.GetString(buf);
-            //recvStr = recvStr.Replace("\0", "");
-
-           
-
-          
-            //string recvStr = Encoding.UTF8.GetString(buf).ToString();
-
-
-
-            //if (recvStr != "")
-            //{
-            //    if(recvStr == "White")
-            //    {
-            //        stone = STONE.WHITE; // Whilte 1 Black 2
-            //        bTurn = false;
-            //    }
-            //    else if(recvStr == "Black")
-            //    {
-            //        stone = STONE.BLACK;
-            //        bTurn = true; // Black is First!
-
-            //    }
-
-                bConnect = true;
-            //}
+            bConnect = true;
+            Entry_Message();
 
         }
 
@@ -252,11 +225,14 @@ namespace OMOK_Client
             if (WinnerCheck(ref BlackReposit))
             {
                 MessageBox.Show("흑이 이겼습니다");
+                ResetGame();
 
             }
             if (WinnerCheck(ref WhiteReposit))
             {
                 MessageBox.Show("백이 이겼습니다");
+                ResetGame();
+
             }
 
         }
@@ -945,6 +921,7 @@ namespace OMOK_Client
         private void PlayForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             //hClntSock.Shutdown()
+            ResetGame();
             hClntSock.Close();
             
 
@@ -1058,6 +1035,18 @@ namespace OMOK_Client
                     bTurn = true;
 
 
+                    if (WinnerCheck(ref BlackReposit))
+                    {
+                        MessageBox.Show("흑이 이겼습니다");
+                        ResetGame();
+                    }
+                    if (WinnerCheck(ref WhiteReposit))
+                    {
+                        MessageBox.Show("백이 이겼습니다");
+                        ResetGame();
+                    }
+
+
                 }
                 else
                 {
@@ -1084,17 +1073,22 @@ namespace OMOK_Client
                     gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
                     bTurn = true;
 
+
+                    if (WinnerCheck(ref BlackReposit))
+                    {
+                        MessageBox.Show("흑이 이겼습니다");
+                        ResetGame();
+                    }
+                    if (WinnerCheck(ref WhiteReposit))
+                    {
+                        MessageBox.Show("백이 이겼습니다");
+                        ResetGame();
+                    }
+
+
                 }
             }
 
-            if (WinnerCheck(ref BlackReposit))
-            {
-                MessageBox.Show("흑이 이겼습니다");
-            }
-            if (WinnerCheck(ref WhiteReposit))
-            {
-                MessageBox.Show("백이 이겼습니다");
-            }
 
 
         }
@@ -1109,20 +1103,46 @@ namespace OMOK_Client
                 int strLen = hClntSock.Receive(buf);
                 if ((char)buf[0] == 'M')
                 {
-                    string chatMessage = Encoding.Default.GetString(buf, 5, strLen-5).Trim();
-                    int id = BitConverter.ToInt16(buf, 1);
+                    string chatMessage = Encoding.Default.GetString(buf, 5, strLen - 5).Trim();
+                    int id = BitConverter.ToUInt16(buf, 1);
                     listBox1.Items.Add("[" + id.ToString() + "]: " + chatMessage);
 
                     //Chatting highlight Function
                     listBox1.SelectedIndex = listBox1.Items.Count - 1;
 
                 }
-                else if((char)buf[1]=='P')
+                else if ((char)buf[1] == 'P')
                 {
                     OtherTurn();
                 }
+                else if ((char)buf[0] =='J')
+                {
+                    if ((char)buf[1] == 'W')
+                    {
+                        stone = STONE.WHITE;
+                    }
+                    else if ((char)buf[1] == 'B')
+                    {
+                        stone = STONE.BLACK;
+                    }
+
+                    hClntSock.Send(buf); //
+                }
+                else if((char)buf[0]=='S')
+                {
+                    MessageBox.Show("Game Start!");
+                    if(stone==STONE.BLACK)
+                    {
+                        bTurn = true;
+                    }
+                    else if(stone==STONE.WHITE)
+                    {
+                        bTurn = false;
+                    }
+                }
             }
         }
+
         private void TextBox1_KeyDown(object sender, KeyEventArgs e)
         {
             //textBox1.Text += e.KeyCode.ToString();
@@ -1151,8 +1171,73 @@ namespace OMOK_Client
             }
 
         }
+        void Entry_Message()
+        {
+            System.Array.Clear(buf, 0, BUF_SIZE);
 
-   
+            buf[0] = (byte)'M'; // Message Packet 
+            buf[1] = (byte)(socketID & 0x000000ff);
+            buf[2] = (byte)((socketID & 0x0000ff00) >> 8);
+            buf[3] = (byte)((socketID & 0x00ff0000) >> 16);
+            buf[4] = (byte)((socketID & 0xff000000) >> 24);
 
+            //TextBox's Text -> Buffer
+            string entryMessage =  "님이 입장하셨습니다";
+            byte[] strByte = Encoding.Default.GetBytes(entryMessage);
+
+            for (int i = 0; i < strByte.Length; ++i)
+            {
+                buf[i + 5] = strByte[i];
+            }
+            //Send Chat Message to Server
+            hClntSock.Send(buf);
+        }
+        void ResetGame()
+        {
+            bTurn = false;
+            BlackReposit.Clear();
+            WhiteReposit.Clear();
+            bReady = true;
+            ResetOMOK_Boad();
+
+            System.Array.Clear(buf, 0, BUF_SIZE);
+            buf[0]=(byte)'E';
+            if(stone ==STONE.BLACK)
+            {
+                buf[1] = (byte)'B';
+            }
+            else if(stone == STONE.WHITE)
+            {
+                buf[1] = (byte)'W';
+            }
+            stone = 0;
+            hClntSock.Send(buf);
+        }
+        void ResetOMOK_Boad()
+        {
+            //Reset OMOK Board
+            Graphics gp = this.pictureBox1.CreateGraphics();
+            gp.Clear(Color.FromArgb(192, 192, 0));
+            Color lineColor = Color.Black;
+            Pen pen = new Pen(lineColor, 2);
+
+            for (int i = 0; i <= pictureBox1.Width; i += (pictureBox1.Width / LineCount))
+            {
+                gp.DrawLine(pen, 0, i, pictureBox1.Width, i); // 가로줄 긋기
+                gp.DrawLine(pen, i, 0, i, pictureBox1.Width); // 세로줄 긋기
+            }
+        }
+        private void button1_MouseDown(object sender, MouseEventArgs e)
+        {
+            if(bReady)
+            {
+                System.Array.Clear(buf, 0, BUF_SIZE);
+                buf[0] = (byte)'J';
+                hClntSock.Send(buf);
+                bReady = false;
+
+            }
+
+        }
     }
 }
