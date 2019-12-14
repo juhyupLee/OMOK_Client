@@ -80,7 +80,7 @@ namespace OMOK_Client
             TotalReposit = new Stack<TargetPoint>();
             //TCP IP 소켓통신
             hClntSock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            servAddr = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1234);
+            servAddr = new IPEndPoint(IPAddress.Parse("192.168.0.2"), 1234);
 
             buf = new byte[1024];
 

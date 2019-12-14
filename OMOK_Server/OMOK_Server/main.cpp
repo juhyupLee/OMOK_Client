@@ -1,9 +1,14 @@
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include <WinSock2.h>
 #include <iostream>
 #include <stack>
 #include <string>
+#include <WS2tcpip.h>
 
 using namespace std;
+
+
 
 enum
 {
@@ -24,7 +29,6 @@ int main()
 	fd_set read,cpyRead;
 
 
-	//const char* PORT = "1234";
 	char buf[BUF_SIZE];
 
 	int strLen = 0;
@@ -33,6 +37,8 @@ int main()
 
 	int packetLength = 10;
 
+	const char* addr = "192.168.0.2";
+	int size = 0;
 
 	stack<char> stoneStack;
 	stack<SOCKET> socketStack;
@@ -57,9 +63,14 @@ int main()
 
 	//---아랫부분 다시공부해야함----
 	servAddr.sin_family = AF_INET;
-	servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	//inet_pton(AF_INET, (PCSTR)"119.207.113.51",&servAddr.sin_addr.s_addr);
+
 	//servAddr.sin_port = htons(atoi(PORT));
 	servAddr.sin_port = htons(PORT);
+	servAddr.sin_addr.s_addr = inet_addr("192.168.0.2");
+
+
+
 	///-------------------------
 
 	if (bind(hServSock, (sockaddr*)&servAddr, sizeof(servAddr)) == SOCKET_ERROR)
