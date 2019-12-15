@@ -36,6 +36,11 @@ int main()
 	int readyCount = 0;
 
 	int packetLength = 10;
+	string serverIP_Address;
+
+	
+	cout << "IP 주소를 입력하시오(XXX.XXX.XXX.XXX):" << endl;
+	cin >> serverIP_Address;
 
 	const char* addr = "192.168.0.2";
 	int size = 0;
@@ -67,7 +72,7 @@ int main()
 
 	//servAddr.sin_port = htons(atoi(PORT));
 	servAddr.sin_port = htons(PORT);
-	servAddr.sin_addr.s_addr = inet_addr("192.168.0.2");
+	servAddr.sin_addr.s_addr = inet_addr(serverIP_Address.c_str());
 
 
 
@@ -76,16 +81,18 @@ int main()
 	if (bind(hServSock, (sockaddr*)&servAddr, sizeof(servAddr)) == SOCKET_ERROR)
 	{
 		cout << "bind() error";
+		return 0;
 	}
 
 	FD_ZERO(&read);
 	FD_SET(hServSock, &read);
 
 	listen(hServSock, SOCKET_QUEUE);
+	cout << "Server Start!" << endl;
 
 	while (1)
 	{
-
+		
 		timeout.tv_sec = 5;
 		timeout.tv_usec = 5000;
 		cpyRead = read;

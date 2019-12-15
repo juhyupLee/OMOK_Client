@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using System.Net;
 using System.Net.Sockets;
 // 소켓과 관련덴 네임스페이스
+using System.Media;
 
 
 
@@ -71,16 +72,22 @@ namespace OMOK_Client
         //BackgroundWorker worker1;
         BackgroundWorker worker2;
 
+        // Sound 
+        SoundPlayer putSound;
+
 
         public PlayForm()
         {
+            
             InitializeComponent();
+        
+
             BlackReposit = new List<TargetPoint>();
             WhiteReposit = new List<TargetPoint>();
             TotalReposit = new Stack<TargetPoint>();
             //TCP IP 소켓통신
             hClntSock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            servAddr = new IPEndPoint(IPAddress.Parse("192.168.0.2"), 1234);
+            servAddr = new IPEndPoint(IPAddress.Parse(MenuForm.ip_Address), 1234);
 
             buf = new byte[1024];
 
@@ -90,8 +97,16 @@ namespace OMOK_Client
             worker2.DoWork += new DoWorkEventHandler(Chatting_Recv);
 
             worker2.RunWorkerAsync();
+            //string path = System.IO.Directory.GetCurrentDirectory()+"\\Resource\\putStone_Sund.wav";
 
-         
+
+            putSound = new SoundPlayer(@"./\Resource\putStone_Sound.wav");
+            //putSound.PlaySync();
+
+
+            
+
+           
 
             try
             {
@@ -195,7 +210,8 @@ namespace OMOK_Client
                 buf[8] = (byte)((targetY & 0x00ff0000) >> 16);
                 buf[9] = (byte)((targetY & 0xff000000) >> 24);
                 hClntSock.Send(buf);
-               // bTurn = false;
+                // bTurn = false;
+              
 
                 WhiteReposit.Add(new TargetPoint(targetX, targetY));
             }
@@ -215,13 +231,14 @@ namespace OMOK_Client
                 buf[9] = (byte)((targetY & 0xff000000) >> 24);
                 hClntSock.Send(buf);
                 //bTurn = false;
-                
+
                 BlackReposit.Add(new TargetPoint(targetX, targetY));
 
             }
             TotalReposit.Push(new TargetPoint(targetX, targetY));
 
             gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
+            putSound.PlaySync();
             if (WinnerCheck(ref BlackReposit))
             {
                 MessageBox.Show("흑이 이겼습니다");
@@ -1032,6 +1049,7 @@ namespace OMOK_Client
                     WhiteReposit.Add(new TargetPoint(targetX, targetY));
                     //textBox2.Text = " White Pos" + "X:" + targetX.ToString() + "Y:" + targetY.ToString();
                     gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
+                    putSound.PlaySync();
                     bTurn = true;
 
 
@@ -1071,6 +1089,7 @@ namespace OMOK_Client
                     BlackReposit.Add(new TargetPoint(targetX, targetY));
                     //textBox2.Text = " Black Pos" + "X:" + targetX.ToString() + "Y:" + targetY.ToString();
                     gp.FillEllipse(brush, targetX - (Radian / 2), targetY - (Radian / 2), Radian, Radian);
+                    putSound.PlaySync();
                     bTurn = true;
 
 

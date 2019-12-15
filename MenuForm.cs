@@ -14,6 +14,7 @@ using System.Net.Sockets;
 
 namespace OMOK_Client
 {
+   
     public partial class MenuForm : Form
     {
         public MenuForm()
@@ -21,11 +22,24 @@ namespace OMOK_Client
             InitializeComponent();
         }
 
+        
+
         private void SinglePlayBtn_Click(object sender, EventArgs e)
         {
             Hide();
+
+            string[] inputIP = textBox1.Text.Split('.');
+
+            if(inputIP.Count()<4)
+            {
+                MessageBox.Show("IP 주소를 제대로 입력하십시오.");
+                return;
+            }
+            ip_Address = textBox1.Text;
+
             PlayForm playForm = new PlayForm();
             playForm.FormClosed += new FormClosedEventHandler(childForm_Closed);
+           
             playForm.Show();
         }
 
@@ -38,6 +52,9 @@ namespace OMOK_Client
             Show();
         }
 
-     
+        private void textBox1_KeyDown(object sender, KeyEventArgs e)
+        {
+       
+        }
     }
 }
